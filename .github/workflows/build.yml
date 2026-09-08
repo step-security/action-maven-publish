@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  - pull_request
+
+jobs:
+  build-dist:
+    name: Build dist
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install deps
+        run: npm ci
+
+      - name: build
+        run: npm run build

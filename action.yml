@@ -1,0 +1,49 @@
+name: "action-maven-publish"
+author: "step-security"
+description: "Automates Maven artifact deployment to Nexus with optional GPG signing"
+
+inputs:
+  nexus_username:
+    required: true
+    description: "Nexus repository manager account username (use username, not email)"
+
+  nexus_password:
+    required: true
+    description: "Password associated with the Nexus account"
+
+  maven_goals_phases:
+    required: false
+    default: "clean deploy"
+    description: "Space-separated list of Maven goals and lifecycle phases to run"
+
+  maven_profiles:
+    required: false
+    default: "deploy"
+    description: "Comma-separated list of Maven profiles to activate during the build"
+
+  maven_args:
+    required: false
+    default: ""
+    description: "Extra flags or arguments appended to the Maven command"
+
+  directory:
+    required: false
+    description: "Path to the Maven project to deploy; defaults to the repository root"
+
+  server_id:
+    required: false
+    default: "ossrh"
+    description: "Server ID matching the entry in nexus-staging-maven-plugin and distributionManagement"
+
+  gpg_private_key:
+    required: false
+    description: "Armored GPG private key used to sign published artifacts"
+
+  gpg_passphrase:
+    required: false
+    description: "Passphrase that unlocks the provided GPG private key"
+
+runs:
+  using: "node24"
+  main: "dist/index.js"
+
