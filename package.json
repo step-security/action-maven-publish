@@ -1,0 +1,19 @@
+{
+	"name": "action-maven-publish",
+	"version": "1.4.0",
+	"description": "Automates Maven artifact deployment to Nexus with optional GPG signing",
+	"author": "step-security",
+	"repository": "github:step-security/action-maven-publish",
+	"private": true,
+	"main": "dist/index.js",
+	"scripts": {
+		"build": "ncc build index.js -o dist && cp settings.xml dist/"
+	},
+	"dependencies": {
+		"@actions/core": "^2.0.0",
+		"axios": "^1.7.0"
+	},
+	"devDependencies": {
+		"@vercel/ncc": "^0.45.0"
+	}
+}
