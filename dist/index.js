@@ -43782,8 +43782,7 @@ module.exports = /*#__PURE__*/JSON.parse('{"application/1d-interleaved-parityfec
 /************************************************************************/
 var __webpack_exports__ = {};
 const path = __nccwpck_require__(6928);
-const { writeFileSync, unlinkSync } = __nccwpck_require__(9896);
-const { execSync } = __nccwpck_require__(5317);
+const { execFileSync } = __nccwpck_require__(5317);
 const { validateSubscription } = __nccwpck_require__(3603);
 
 function resolveLocalPath(filename) {
@@ -43791,7 +43790,6 @@ function resolveLocalPath(filename) {
 }
 
 const settingsFilePath = resolveLocalPath("settings.xml");
-const gpgKeyFile = resolveLocalPath("private-key.txt");
 
 // Reads a raw environment variable by name
 function readEnvVar(varName) {
@@ -43799,9 +43797,9 @@ function readEnvVar(varName) {
 	return envValue;
 }
 
-// Runs a shell command, inheriting stdio so output flows to the console
-function executeCommand(cmd, workDir = null) {
-	return execSync(cmd, { cwd: workDir, stdio: "inherit", encoding: "utf8" });
+// Runs a program with an explicit args array — no shell, no injection surface
+function executeCommand(program, args, workDir = null) {
+	return execFileSync(program, args, { cwd: workDir, stdio: "inherit", encoding: "utf8" });
 }
 
 // Retrieves an action input by name; throws if the input is required but absent
@@ -43817,16 +43815,18 @@ function printMessage(text) {
 	console.log(text); // eslint-disable-line no-console
 }
 
-// Imports the GPG private key into the local keychain when one is supplied
+// Imports the GPG private key into the local keychain when one is supplied.
+// The key is piped via stdin — it never touches the filesystem.
 function importGpgKey() {
 	const gpgKey = fetchInput("gpg_private_key").trim();
 	if (gpgKey.length === 0) return;
 
 	fetchInput("gpg_passphrase", true);
 	printMessage("Importing GPG private key…");
-	writeFileSync(gpgKeyFile, gpgKey);
-	executeCommand(`gpg --import --batch ${gpgKeyFile}`);
-	unlinkSync(gpgKeyFile);
+	execFileSync("gpg", ["--import", "--batch"], {
+		input: gpgKey,
+		stdio: ["pipe", "inherit", "inherit"],
+	});
 }
 
 // Entry point: validates inputs, imports GPG key if provided, then runs the Maven deploy
@@ -43844,7 +43844,14 @@ async function deployMavenProject() {
 	// The "deploy" profile lets users gate steps to the deploy phase only
 	printMessage("Running Maven deployment…");
 	executeCommand(
-		`mvn ${goals} --batch-mode --activate-profiles ${profiles} --settings ${settingsFilePath} ${additionalArgs}`,
+		"mvn",
+		[
+			...goals.trim().split(/\s+/).filter(Boolean),
+			"--batch-mode",
+			"--activate-profiles", profiles,
+			"--settings", settingsFilePath,
+			...additionalArgs.trim().split(/\s+/).filter(Boolean),
+		],
 		fetchInput("directory") || null,
 	);
 }
