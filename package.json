@@ -7,7 +7,7 @@
 	"private": true,
 	"main": "dist/index.js",
 	"scripts": {
-		"build": "ncc build index.js -o dist"
+		"build": "ncc build index.js -o dist && cp settings.xml dist/"
 	},
 	"dependencies": {
 		"@actions/core": "^2.0.0",
